@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/byron1st/drextractor/lib"
+	"github.com/byron1st/dr-extractor-golang/lib"
 )
 
 func main() {

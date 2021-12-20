@@ -1,4 +1,4 @@
-module github.com/byron1st/drextractor
+module github.com/byron1st/dr-extractor-golang
 
 go 1.17
 
