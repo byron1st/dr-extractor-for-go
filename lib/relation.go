@@ -8,6 +8,7 @@ import (
 )
 
 type RelationByTarget struct {
+	Language       string `json:"language"`
 	TargetModule   string `json:"targetModule"`
 	TargetFunc     string `json:"targetFunc,omitempty"`
 	SourceModule   string `json:"sourceModule"`

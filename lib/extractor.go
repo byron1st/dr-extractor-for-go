@@ -54,6 +54,7 @@ func ExtractCallgraph(pkgName string) error {
 		targetFunc := edge.Callee.Func.Name()
 
 		relation := RelationByTarget{
+			Language:       "Go",
 			TargetModule:   removeCharacters(targetModule, "(", ")", "*"),
 			TargetFunc:     removeCharacters(targetFunc, "(", ")", "*"),
 			SourceModule:   removeCharacters(caller, "(", ")", "*"),
