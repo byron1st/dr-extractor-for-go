@@ -10,7 +10,12 @@ import (
 func main() {
 	flag.Parse()
 	args := flag.Args()
-	if err := lib.ExtractCallgraph(args[0]); err != nil {
+	pkgName := args[0]
+	baseName := ""
+	if len(args) > 1 {
+		baseName = args[1]
+	}
+	if err := lib.ExtractCallgraph(pkgName, baseName); err != nil {
 		log.Fatal(err)
 	}
 }

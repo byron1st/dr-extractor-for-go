@@ -10,7 +10,7 @@ import (
 	"golang.org/x/tools/go/ssa/ssautil"
 )
 
-func ExtractCallgraph(pkgName string) error {
+func ExtractCallgraph(pkgName string, baseName string) error {
 	cfg := &packages.Config{
 		Mode: packages.NeedDeps |
 			packages.NeedSyntax |
@@ -39,19 +39,24 @@ func ExtractCallgraph(pkgName string) error {
 
 	if err := callgraph.GraphVisitEdges(cg, func(edge *callgraph.Edge) error {
 		caller := edge.Caller.Func.Pkg.Pkg.Path()
-		if !strings.Contains(caller, pkgName) {
-			return nil
-		}
-
-		pos := prog.Fset.Position(edge.Pos())
-		filename := pos.Filename
-		if filename == "" {
-			return nil
-		}
-
-		line := pos.Line
 		targetModule := edge.Callee.Func.Pkg.Pkg.Path()
 		targetFunc := edge.Callee.Func.Name()
+		pos := prog.Fset.Position(edge.Pos())
+		line := pos.Line
+		filename := pos.Filename
+		if !strings.Contains(caller, pkgName) ||
+			strings.Contains(targetModule, pkgName) ||
+			(baseName != "" && strings.Contains(targetModule, baseName)) ||
+			filename == "" {
+			return nil
+		}
+
+		if !strings.Contains(caller, pkgName) ||
+			strings.Contains(targetModule, pkgName) ||
+			(baseName != "" && strings.Contains(targetModule, baseName)) ||
+			filename == "" {
+			return nil
+		}
 
 		relation := RelationByTarget{
 			Language:       "Go",
