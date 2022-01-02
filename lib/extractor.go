@@ -50,12 +50,14 @@ func ExtractCallgraph(pkgName string) error {
 		}
 
 		line := pos.Line
-		callee := fmt.Sprintf("%s.%s", edge.Callee.Func.Pkg.Pkg.Path(), edge.Callee.Func.Name())
+		targetModule := edge.Callee.Func.Pkg.Pkg.Path()
+		targetFunc := edge.Callee.Func.Name()
 
-		relation := Relation{
-			Source:   removeCharacters(caller, "(", ")", "*"),
-			Target:   removeCharacters(callee, "(", ")", "*"),
-			Location: fmt.Sprintf("%s:%d", filename, line),
+		relation := RelationByTarget{
+			TargetModule:   removeCharacters(targetModule, "(", ")", "*"),
+			TargetFunc:     removeCharacters(targetFunc, "(", ")", "*"),
+			SourceModule:   removeCharacters(caller, "(", ")", "*"),
+			SourceLocation: fmt.Sprintf("%s:%d", filename, line),
 		}
 
 		if err := relation.Print(); err != nil {

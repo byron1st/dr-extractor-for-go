@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-type Relation struct {
-	Source   string `json:"source"`
-	Target   string `json:"target"`
-	Kind     string `json:"kind,omitempty"`
-	Location string `json:"location,omitempty"`
+type RelationByTarget struct {
+	TargetModule   string `json:"targetModule"`
+	TargetFunc     string `json:"targetFunc,omitempty"`
+	SourceModule   string `json:"sourceModule"`
+	SourceLocation string `json:"sourceLocation,omitempty"`
 }
 
-func (r Relation) Print() error {
+func (r RelationByTarget) Print() error {
 	relationBytes, err := json.Marshal(r)
 	if err != nil {
 		return err
