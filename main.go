@@ -1,21 +1,11 @@
+/*
+Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+
+*/
 package main
 
-import (
-	"flag"
-	"log"
-
-	"github.com/byron1st/dr-extractor-golang/lib"
-)
+import "github.com/byron1st/dr-extractor-golang/cmd"
 
 func main() {
-	flag.Parse()
-	args := flag.Args()
-	pkgName := args[0]
-	baseName := ""
-	if len(args) > 1 {
-		baseName = args[1]
-	}
-	if err := lib.ExtractCallgraph(pkgName, baseName); err != nil {
-		log.Fatal(err)
-	}
+	cmd.Execute()
 }
