@@ -1,6 +1,6 @@
-module github.com/byron1st/dr-extractor-golang
+module github.com/byron1st/dr-extractor-for-go
 
-go 1.18
+go 1.19
 
 require (
 	github.com/spf13/cobra v1.4.0

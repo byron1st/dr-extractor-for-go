@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/byron1st/dr-extractor-golang/lib"
+	"github.com/byron1st/dr-extractor-for-go/lib"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

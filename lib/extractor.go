@@ -38,20 +38,21 @@ func ExtractCallgraph(pkgName string, baseName string) error {
 	cg.DeleteSyntheticNodes()
 
 	if err := callgraph.GraphVisitEdges(cg, func(edge *callgraph.Edge) error {
-		caller := edge.Caller.Func.Pkg.Pkg.Path()
+		sourceModule := edge.Caller.Func.Pkg.Pkg.Path()
 		targetModule := edge.Callee.Func.Pkg.Pkg.Path()
 		targetFunc := edge.Callee.Func.Name()
 		pos := prog.Fset.Position(edge.Pos())
 		line := pos.Line
 		filename := pos.Filename
-		if !strings.Contains(caller, pkgName) ||
+
+		if !strings.Contains(sourceModule, pkgName) ||
 			strings.Contains(targetModule, pkgName) ||
 			(baseName != "" && strings.Contains(targetModule, baseName)) ||
 			filename == "" {
 			return nil
 		}
 
-		if !strings.Contains(caller, pkgName) ||
+		if !strings.Contains(sourceModule, pkgName) ||
 			strings.Contains(targetModule, pkgName) ||
 			(baseName != "" && strings.Contains(targetModule, baseName)) ||
 			filename == "" {
@@ -62,7 +63,7 @@ func ExtractCallgraph(pkgName string, baseName string) error {
 			Language:       "Go",
 			TargetModule:   removeCharacters(targetModule, "(", ")", "*"),
 			TargetFunc:     removeCharacters(targetFunc, "(", ")", "*"),
-			SourceModule:   removeCharacters(caller, "(", ")", "*"),
+			SourceModule:   removeCharacters(sourceModule, "(", ")", "*"),
 			SourceLocation: fmt.Sprintf("%s:%d", filename, line),
 		}
 

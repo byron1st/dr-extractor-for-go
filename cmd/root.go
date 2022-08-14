@@ -8,8 +8,8 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "dr-extractor-golang",
-	Short: "Golang Dependency Relations Extractor",
+	Use:   "drgo",
+	Short: "Dependency Relations Extractor for Go",
 }
 
 func Execute() {
