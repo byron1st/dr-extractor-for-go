@@ -59,14 +59,7 @@ func ExtractCallgraph(pkgName string, baseName string) error {
 			return nil
 		}
 
-		relation := RelationByTarget{
-			Language:       "Go",
-			TargetModule:   removeCharacters(targetModule, "(", ")", "*"),
-			TargetFunc:     removeCharacters(targetFunc, "(", ")", "*"),
-			SourceModule:   removeCharacters(sourceModule, "(", ")", "*"),
-			SourceLocation: fmt.Sprintf("%s:%d", filename, line),
-		}
-
+		relation := NewRelation(sourceModule, filename, line, targetModule, targetFunc)
 		if err := relation.Print(); err != nil {
 			return err
 		}

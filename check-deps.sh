@@ -1,0 +1,1 @@
+go list -u -m -mod=mod -json all | go-mod-outdated -direct -update

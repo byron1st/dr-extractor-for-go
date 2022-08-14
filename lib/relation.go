@@ -7,15 +7,29 @@ import (
 	"strings"
 )
 
-type RelationByTarget struct {
-	Language       string `json:"language"`
-	TargetModule   string `json:"targetModule"`
-	TargetFunc     string `json:"targetFunc,omitempty"`
-	SourceModule   string `json:"sourceModule"`
-	SourceLocation string `json:"sourceLocation,omitempty"`
+type Relation struct {
+	SourceModule Module `json:"sourceModule"`
+	TargetModule Module `json:"targetModule"`
 }
 
-func (r RelationByTarget) Print() error {
+type Module struct {
+	ID       string `json:"id"`
+	Location string `json:"location"`
+}
+
+func NewRelation(sourceModule string, filename string, line int, targetModule string, targetFunc string) Relation {
+	return Relation{
+		SourceModule: Module{
+			ID:       removeCharacters(sourceModule, "(", ")", "*"),
+			Location: fmt.Sprintf("%s:%d", filename, line),
+		},
+		TargetModule: Module{
+			ID: fmt.Sprintf("%s.%s", removeCharacters(targetModule, "(", ")", "*"), removeCharacters(targetFunc, "(", ")", "*")),
+		},
+	}
+}
+
+func (r Relation) Print() error {
 	relationBytes, err := json.Marshal(r)
 	if err != nil {
 		return err
