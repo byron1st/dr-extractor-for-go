@@ -3,7 +3,7 @@ module github.com/byron1st/dr-extractor-for-go
 go 1.19
 
 require (
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	golang.org/x/tools v0.1.12
 )
