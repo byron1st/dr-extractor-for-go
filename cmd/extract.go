@@ -9,12 +9,22 @@ import (
 	"github.com/spf13/viper"
 )
 
+var configFlag = "config"
+
 var extractCmd = &cobra.Command{
 	Use:   "extract",
 	Short: "Extract dependency relations of a target Go project",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.ExtractCallgraph(viper.GetString("pkg"), viper.GetString("base")); err != nil {
+		config, err := lib.SetConfig(viper.GetString(configFlag))
+		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
+			return
+		}
+
+		for _, targetSourceCode := range config.TargetSourceCodes {
+			if err := lib.ExtractCallgraph(targetSourceCode.MainPkgName, targetSourceCode.SourceCodePkgNames); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
 		}
 	},
 }
@@ -22,9 +32,8 @@ var extractCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(extractCmd)
 
-	extractCmd.Flags().StringP("pkg", "p", "", "Target package")
-	viper.BindPFlag("pkg", extractCmd.Flags().Lookup("pkg"))
-
-	extractCmd.Flags().StringP("base", "b", "", "Base package")
-	viper.BindPFlag("base", extractCmd.Flags().Lookup("base"))
+	extractCmd.Flags().StringP(configFlag, "c", "config.json", "Configuration")
+	if err := viper.BindPFlag(configFlag, extractCmd.Flags().Lookup(configFlag)); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }

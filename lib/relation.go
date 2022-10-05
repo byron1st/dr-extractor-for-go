@@ -5,18 +5,60 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/tools/go/callgraph"
+	"golang.org/x/tools/go/ssa"
 )
 
-type RelationByTarget struct {
-	Language       string `json:"language"`
-	TargetModule   string `json:"targetModule"`
-	TargetFunc     string `json:"targetFunc,omitempty"`
-	SourceModule   string `json:"sourceModule"`
-	SourceLocation string `json:"sourceLocation,omitempty"`
+type DepedencyRelationFromSCToEL struct {
+	Source         string `json:"source"`
+	SourceMetadata string `json:"sourceMetadata"`
+	Target         string `json:"target"`
+	TargetMetadata string `json:"targetMetadata"`
+
+	prog               *ssa.Program
+	edge               *callgraph.Edge
+	sourceCodePkgNames []string
 }
 
-func (r RelationByTarget) Print() error {
-	relationBytes, err := json.Marshal(r)
+func NewDependencyRelation(prog *ssa.Program, edge *callgraph.Edge, sourceCodePkgNames []string) DepedencyRelationFromSCToEL {
+	return DepedencyRelationFromSCToEL{
+		prog:               prog,
+		edge:               edge,
+		sourceCodePkgNames: sourceCodePkgNames,
+	}
+}
+
+func (dr DepedencyRelationFromSCToEL) CheckIfDRFromSCToEL() bool {
+	sourceModule := dr.edge.Caller.Func.Pkg.Pkg.Path()
+	targetModule := dr.edge.Callee.Func.Pkg.Pkg.Path()
+
+	return dr.isSourceCodePkg(sourceModule) && !dr.isSourceCodePkg(targetModule)
+}
+
+func (dr DepedencyRelationFromSCToEL) isSourceCodePkg(pkg string) bool {
+	for _, sourceCodePkgName := range dr.sourceCodePkgNames {
+		if strings.Contains(pkg, sourceCodePkgName) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (dr DepedencyRelationFromSCToEL) Print() error {
+	sourceModule := dr.edge.Caller.Func.Pkg.Pkg.Path()
+	targetModule := dr.edge.Callee.Func.Pkg.Pkg.Path()
+	pos := dr.prog.Fset.Position(dr.edge.Pos())
+	line := pos.Line
+	filename := pos.Filename
+
+	dr.Source = fmt.Sprintf("%s.%s", sourceModule, dr.edge.Caller.Func.Name())
+	dr.SourceMetadata = fmt.Sprintf("%s:%d", filename, line)
+	dr.Target = fmt.Sprintf("%s.%s", targetModule, dr.edge.Callee.Func.Name())
+	dr.TargetMetadata = ""
+
+	relationBytes, err := json.Marshal(dr)
 	if err != nil {
 		return err
 	}
@@ -28,11 +70,11 @@ func (r RelationByTarget) Print() error {
 	return nil
 }
 
-func removeCharacters(str string, chars ...string) string {
-	removed := str
-	for _, c := range chars {
-		removed = strings.Replace(removed, c, "", -1)
-	}
+// func removeCharacters(str string, chars ...string) string {
+// 	removed := str
+// 	for _, c := range chars {
+// 		removed = strings.Replace(removed, c, "", -1)
+// 	}
 
-	return removed
-}
+// 	return removed
+// }

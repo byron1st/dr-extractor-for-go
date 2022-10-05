@@ -2,7 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"strings"
 
 	"golang.org/x/tools/go/callgraph"
 	"golang.org/x/tools/go/callgraph/static"
@@ -10,64 +9,25 @@ import (
 	"golang.org/x/tools/go/ssa/ssautil"
 )
 
-func ExtractCallgraph(pkgName string, baseName string) error {
-	cfg := &packages.Config{
-		Mode: packages.NeedDeps |
-			packages.NeedSyntax |
-			packages.NeedTypesInfo |
-			packages.NeedTypes |
-			packages.NeedTypesSizes |
-			packages.NeedImports |
-			packages.NeedName |
-			packages.NeedFiles |
-			packages.NeedCompiledGoFiles,
-		Tests: false,
-	}
-	initial, err := packages.Load(cfg, pkgName)
+func ExtractCallgraph(mainPkgName string, sourceCodePkgNames []string) error {
+	pkgs, err := loadPkgs(mainPkgName)
 	if err != nil {
 		return err
 	}
-	if packages.PrintErrors(initial) > 0 {
-		return fmt.Errorf("packages contain errors")
-	}
 
-	prog, _ := ssautil.AllPackages(initial, 0)
+	prog, _ := ssautil.AllPackages(pkgs, 0)
 	prog.Build()
 
 	cg := static.CallGraph(prog)
 	cg.DeleteSyntheticNodes()
 
 	if err := callgraph.GraphVisitEdges(cg, func(edge *callgraph.Edge) error {
-		sourceModule := edge.Caller.Func.Pkg.Pkg.Path()
-		targetModule := edge.Callee.Func.Pkg.Pkg.Path()
-		targetFunc := edge.Callee.Func.Name()
-		pos := prog.Fset.Position(edge.Pos())
-		line := pos.Line
-		filename := pos.Filename
-
-		if !strings.Contains(sourceModule, pkgName) ||
-			strings.Contains(targetModule, pkgName) ||
-			(baseName != "" && strings.Contains(targetModule, baseName)) ||
-			filename == "" {
+		dr := NewDependencyRelation(prog, edge, sourceCodePkgNames)
+		if !dr.CheckIfDRFromSCToEL() {
 			return nil
 		}
 
-		if !strings.Contains(sourceModule, pkgName) ||
-			strings.Contains(targetModule, pkgName) ||
-			(baseName != "" && strings.Contains(targetModule, baseName)) ||
-			filename == "" {
-			return nil
-		}
-
-		relation := RelationByTarget{
-			Language:       "Go",
-			TargetModule:   removeCharacters(targetModule, "(", ")", "*"),
-			TargetFunc:     removeCharacters(targetFunc, "(", ")", "*"),
-			SourceModule:   removeCharacters(sourceModule, "(", ")", "*"),
-			SourceLocation: fmt.Sprintf("%s:%d", filename, line),
-		}
-
-		if err := relation.Print(); err != nil {
+		if err := dr.Print(); err != nil {
 			return err
 		}
 
@@ -77,4 +37,28 @@ func ExtractCallgraph(pkgName string, baseName string) error {
 	}
 
 	return nil
+}
+
+var cfg = &packages.Config{
+	Mode: packages.NeedDeps |
+		packages.NeedSyntax |
+		packages.NeedTypesInfo |
+		packages.NeedTypes |
+		packages.NeedTypesSizes |
+		packages.NeedImports |
+		packages.NeedName |
+		packages.NeedFiles |
+		packages.NeedCompiledGoFiles,
+	Tests: false,
+}
+
+func loadPkgs(mainPkgName string) ([]*packages.Package, error) {
+	pkgs, err := packages.Load(cfg, mainPkgName)
+	if err != nil {
+		return nil, err
+	} else if packages.PrintErrors(pkgs) > 0 {
+		return nil, fmt.Errorf("packages contain errors")
+	}
+
+	return pkgs, nil
 }

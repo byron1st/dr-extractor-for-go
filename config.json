@@ -1,0 +1,10 @@
+{
+  "targetSouceCodes": [
+    {
+      "mainPkgName": "github.com/byron1st/dr-extractor-for-go",
+      "sourceCodePkgNames": [
+        "github.com/byron1st/dr-extractor-for-go"
+      ]
+    }
+  ]
+}
